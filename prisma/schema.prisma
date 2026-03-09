@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  email             String              @unique
+  name              String?
+  weeklyPlans       WeeklyPlan[]
+  favorites         Favorite[]
+  avoidedIngredients AvoidedIngredient[]
+}
+
+model Dish {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  mealType   String
+  region     String
+  prepTime   Int
+  ingredients String
+  recipe     String
+  tags       String
+  plannedMeals PlannedMeal[]
+  favorites   Favorite[]
+}
+
+model WeeklyPlan {
+  id          Int           @id @default(autoincrement())
+  weekStart   String
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  plannedMeals PlannedMeal[]
+}
+
+model PlannedMeal {
+  id           Int       @id @default(autoincrement())
+  weeklyPlanId Int
+  dayOfWeek    String
+  mealType     String
+  dishId       Int
+  weeklyPlan   WeeklyPlan @relation(fields: [weeklyPlanId], references: [id], onDelete: Cascade)
+  dish         Dish      @relation(fields: [dishId], references: [id])
+
+  @@unique([weeklyPlanId, dayOfWeek, mealType])
+}
+
+model Favorite {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  dishId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dish   Dish @relation(fields: [dishId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dishId])
+}
+
+model AvoidedIngredient {
+  id         Int    @id @default(autoincrement())
+  userId     Int
+  ingredient String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ingredient])
+}
